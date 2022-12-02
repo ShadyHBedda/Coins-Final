@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.coins">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Coins"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.Coins.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Search"
+            android:exported="false" />
+        <activity
+            android:name=".Chart3"
+            android:exported="false"
+            android:parentActivityName=".Favorite" />
+        <activity
+            android:name=".Chart2"
+            android:exported="false"
+            android:parentActivityName=".Search" />
+        <activity
+            android:name=".Chart"
+            android:exported="false"
+            android:parentActivityName=".Cryptocurrency" />
+        <activity
+            android:name=".Account"
+            android:exported="false"
+            android:parentActivityName=".Settings" />
+        <activity
+            android:name=".ChangePassword"
+            android:exported="false"
+            android:parentActivityName=".Settings" />
+        <activity
+            android:name=".ChangeEmail"
+            android:exported="false"
+            android:parentActivityName=".Settings" />
+        <activity
+            android:name=".Contact"
+            android:exported="false"
+            android:parentActivityName=".Settings" />
+        <activity
+            android:name=".Terms"
+            android:exported="false"
+            android:parentActivityName=".Settings" />
+        <activity
+            android:name=".Settings"
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
+        <activity
+            android:name=".Favorite"
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
+        <activity
+            android:name=".Cryptocurrency"
+            android:configChanges="orientation|screenSize"
+            android:exported="false" />
+        <activity
+            android:name=".SignUp"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:parentActivityName=".Login" />
+        <activity
+            android:name=".Login"
+            android:configChanges="orientation|screenSize"
+            android:exported="true">
+        </activity>
+    </application>
+
+</manifest>
