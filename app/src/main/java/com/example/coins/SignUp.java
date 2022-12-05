@@ -1,17 +1,54 @@
 package com.example.coins;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SignUp extends AppCompatActivity {
+
+    private static final String TAG = "SignUp";
+
+    FirebaseAuth mAuth;
+
+    private void createUser(){
+
+        EditText SignUpEmail = findViewById(R.id.emailSignUp);
+        String email = SignUpEmail.getText().toString();
+
+        EditText SignUpPassword = findViewById(R.id.passwordSignUp);
+        String password = SignUpPassword.getText().toString();
+
+            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()){
+                        Log.d(TAG, "createUserWithEmail:success");
+                        Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(SignUp.this, Login.class));
+                    } else {
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,17 +93,26 @@ public class SignUp extends AppCompatActivity {
 
         if (!matcher.matches()){
             valid = false;
-            wrongEmail.setText("Please enter a valid email");
+            wrongEmail.setText(R.string.InvalidEmail);
         }
+
+        if (email.equals("")) {
+            valid = false;
+            wrongEmail.setText(R.string.EmptyEmail);
+        }
+
         if (password.equals("")) {
             valid = false;
-            wrongPassword.setText("Please enter password");
+            wrongPassword.setText(R.string.EmptyPassword);
         }
+
         if (!verify.equals(password)){
             valid = false;
-            wrongVerify.setText("Does not match password");
+            wrongVerify.setText(R.string.DoesNotMatchPassword);
         }
+
         if (valid) {
+            createUser();
             Intent intent = new Intent(this, Login.class);
             startActivity(intent);
         }

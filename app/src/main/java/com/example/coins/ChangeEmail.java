@@ -1,18 +1,27 @@
 package com.example.coins;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ChangeEmail extends AppCompatActivity {
+
+    final String TAG = "ChangeEmail";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,19 +54,32 @@ public class ChangeEmail extends AppCompatActivity {
 
         if (!matcher1.matches()){
             valid = false;
-            wrongCurrentEmail.setText("Please enter a valid email");
+            wrongCurrentEmail.setText("Please enter a valid email.");
         }
         if (!matcher2.matches()){
             valid = false;
-            wrongNewEmail.setText("Please enter a valid email");
+            wrongNewEmail.setText("Please enter a valid email.");
         }
         if (!currentEmail.equals("") && !newEmail.equals("") && matcher1.matches() && matcher2.matches() && currentEmail.equals(newEmail)){
             valid = false;
-            wrongNewEmail.setText("Please enter NEW email");
+            wrongNewEmail.setText("Please enter NEW email.");
         }
         if (valid) {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            user.updateEmail(newEmail)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "User email address updated.");
+                            }
+                        }
+                    });
+
+            Toast.makeText(this, "Email changed successfully.", Toast.LENGTH_SHORT).show();
+
             startActivity(intent);
-            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
         }
     }
 }
