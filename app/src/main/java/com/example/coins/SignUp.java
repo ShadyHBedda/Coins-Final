@@ -16,6 +16,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.regex.Matcher;
@@ -35,16 +38,48 @@ public class SignUp extends AppCompatActivity {
         EditText SignUpPassword = findViewById(R.id.passwordSignUp);
         String password = SignUpPassword.getText().toString();
 
-            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(SignUp.this,
+                new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()){
-                        Log.d(TAG, "createUserWithEmail:success");
                         Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(SignUp.this, Login.class));
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+
+                        firebaseUser.sendEmailVerification();
+                        Log.d(TAG, "createUserWithEmail:success");
+
+                        Intent signUpSuccessfulIntent = new Intent(SignUp.this, Login.class);
+                        signUpSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                        startActivity(signUpSuccessfulIntent);
+                        finish();
                     } else {
-                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                        Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        try {
+                            throw task.getException();
+                        } catch (FirebaseAuthWeakPasswordException e) {
+                            SignUpPassword.setError("Your password is too weak. " +
+                                    "Consider using a mix of letters, numbers, " +
+                                    "and special characters, or making it longer.");
+                            SignUpPassword.requestFocus();
+                        } catch (FirebaseAuthInvalidCredentialsException e) {
+                            SignUpEmail.setError("The email address you entered is either " +
+                                    "invalid or already in use. Please enter a valid " +
+                                    "email address.");
+                            SignUpEmail.requestFocus();
+                        } catch (FirebaseAuthUserCollisionException e) {
+                            SignUpEmail.setError("This email  is already in use. " +
+                                    "Please login or enter another email.");
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage());
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        ;
+
+
                     }
                 }
             });
