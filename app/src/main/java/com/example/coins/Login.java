@@ -6,9 +6,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,12 +26,11 @@ import java.util.regex.Pattern;
 
 public class Login extends AppCompatActivity {
 
-    EditText LoginEmail;
-    EditText LoginPassword;
-    TextView CreateNewAccount;
-    Button btnLogin;
+    private EditText loginEmail, loginPassword;
+    private TextView underEmail, underPassword, CreateNewAccount;
+    private Button btnLogin;
 
-    FirebaseAuth mAuth;
+    FirebaseAuth mAuthLogin;
 
     private static final String TAG = "Login";
 
@@ -37,20 +39,115 @@ public class Login extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        LoginEmail = findViewById(R.id.email);
-        LoginPassword = findViewById(R.id.password);
+        getSupportActionBar().setTitle("Login");
+
+        loginEmail = findViewById(R.id.email);
+        loginPassword = findViewById(R.id.password);
+        underEmail = findViewById(R.id.wrongEmail);
+        underPassword = findViewById(R.id.wrongPassword);
         CreateNewAccount = findViewById(R.id.newAcct);
         btnLogin = findViewById(R.id.loginButton);
 
-        mAuth = FirebaseAuth.getInstance();
+        mAuthLogin = FirebaseAuth.getInstance();
 
+
+
+        Intent intent = new Intent(this, Cryptocurrency.class);
+
+        EditText enterPassword = findViewById(R.id.password);
+        String password = enterPassword.getText().toString();
+
+        TextView wrongPassword = findViewById(R.id.wrongPassword);
+        wrongPassword.setText("");
+
+
+        EditText enterEmail = findViewById(R.id.email);
+        String email = enterEmail.getText().toString();
+
+        TextView wrongEmail = findViewById(R.id.wrongEmail);
+        wrongEmail.setText("");
+
+
+
+        // Login user
+        btnLogin = findViewById(R.id.loginButton);
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String email = loginEmail.getText().toString();
+                String password = loginPassword.getText().toString();
+                Boolean valid = true;
+
+                /*
+                String regex = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$";
+                Pattern pattern = Pattern.compile(regex);
+                Matcher matcher = pattern.matcher(email);
+                */
+
+                if (TextUtils.isEmpty(email)) {
+                    Toast.makeText(Login.this, "Please enter your email.", Toast.LENGTH_SHORT).show();
+                    loginEmail.setError("Email is required.");
+                    loginEmail.requestFocus();
+                } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+                    /*
+                    if (!matcher.matches()){
+                        valid = false;
+                        underEmail.setText("Please enter a valid email address.");
+                    }
+                    */
+
+                    Toast.makeText(Login.this, "Please re-enter your email.", Toast.LENGTH_SHORT).show();
+                    loginEmail.setError("Valid email is required.");
+                    loginEmail.requestFocus();
+                } else if (TextUtils.isEmpty(password)) {
+
+                    /*
+                    if (password.equals("")) {
+                        valid = false;
+                        underPassword.setText("Please enter password");
+                    }
+                    */
+
+                    Toast.makeText(Login.this, "Please enter your password.", Toast.LENGTH_SHORT).show();
+                    loginPassword.setError("Password is required.");
+                    loginPassword.requestFocus();
+                } else {
+                    loginUser(email, password);
+                    
+                }
+            }
+        });
+
+        /*
         btnLogin.setOnClickListener(view -> {
             onLoginClick();
         });
+         */
 
         CreateNewAccount.setOnClickListener(view ->{
             startActivity(new Intent(Login.this, SignUp.class));
         });
+    }
+
+    private void loginUser(String email, String password) {
+        Intent loginSuccessfulIntent = new Intent(Login.this, Cryptocurrency.class);
+        loginSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+
+            mAuthLogin.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()){
+                        Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                        startActivity(loginSuccessfulIntent);
+                    } else {
+                        Toast.makeText(Login.this, "Login failed! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                    }
+                }
+            });
     }
 
     public void onCreateNewClick(View view){
@@ -74,50 +171,6 @@ public class Login extends AppCompatActivity {
     }
 
     public void onLoginClick(){
-        Intent intent = new Intent(this, Cryptocurrency.class);
 
-        EditText enterPassword = findViewById(R.id.password);
-        String password = enterPassword.getText().toString();
-
-        TextView wrongPassword = findViewById(R.id.wrongPassword);
-        wrongPassword.setText("");
-
-        String regex = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$";
-
-        EditText enterEmail = findViewById(R.id.email);
-        String email = enterEmail.getText().toString();
-
-        TextView wrongEmail = findViewById(R.id.wrongEmail);
-        wrongEmail.setText("");
-
-        Pattern pattern = Pattern.compile(regex);
-
-        Matcher matcher = pattern.matcher(email);
-
-        Boolean valid = true;
-
-        if (!matcher.matches()){
-            valid = false;
-            wrongEmail.setText("Please enter a valid email address.");
-        }
-        if (password.equals("")) {
-            valid = false;
-            wrongPassword.setText("Please enter password");
-        }
-        if (valid) {
-            mAuth.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()){
-                        Toast.makeText(Login.this, "User logged in successfully", Toast.LENGTH_SHORT).show();
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(Login.this, "Log in Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-            
-            startActivity(intent);
-        }
     }
 }

@@ -20,6 +20,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,29 +35,60 @@ public class SignUp extends AppCompatActivity {
 
     private void createUser(){
 
+        // Retrieve email and password inputs by user
         EditText SignUpEmail = findViewById(R.id.emailSignUp);
         String email = SignUpEmail.getText().toString();
 
         EditText SignUpPassword = findViewById(R.id.passwordSignUp);
         String password = SignUpPassword.getText().toString();
 
+            // Firebase-provided method to create user with email and password
             mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(SignUp.this,
                 new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()){
-                        Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_SHORT).show();
+
                         FirebaseUser firebaseUser = mAuth.getCurrentUser();
 
-                        firebaseUser.sendEmailVerification();
-                        Log.d(TAG, "createUserWithEmail:success");
+                        /*
+                        // Update user display name
+                        UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder().setDisplayName(INSERTNAMEHERE).build();
+                        firebaseUser.updateProfile(profileChangeRequest);
+                        */
+                        
+                        // Enter user data into Firebase Database
+                        UserDetails writeUserDetails = new UserDetails(email);
 
-                        Intent signUpSuccessfulIntent = new Intent(SignUp.this, Login.class);
-                        signUpSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        // Extracting user reference from registered user database
+                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                        referenceProfile.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    // Send verification email to user
+                                    firebaseUser.sendEmailVerification();
 
-                        startActivity(signUpSuccessfulIntent);
-                        finish();
+                                    Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_LONG).show();
+
+                                    // Logs successful sign-up
+                                    Log.d(TAG, "createUserWithEmail:success");
+
+                                    Intent signUpSuccessfulIntent = new Intent(SignUp.this, Login.class);
+                                    signUpSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                            | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                                    startActivity(signUpSuccessfulIntent);
+                                    finish();
+                                } else {
+                                    Toast.makeText(SignUp.this, "User registration failed. Please try again.", Toast.LENGTH_LONG).show();
+                                }
+
+                            }
+                        });
+
+
+
                     } else {
                         try {
                             throw task.getException();
@@ -73,7 +107,7 @@ public class SignUp extends AppCompatActivity {
                                     "Please login or enter another email.");
                         } catch (Exception e) {
                             Log.e(TAG, e.getMessage());
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());     Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
 
