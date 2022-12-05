@@ -20,6 +20,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -136,15 +138,26 @@ public class Login extends AppCompatActivity {
                 | Intent.FLAG_ACTIVITY_NEW_TASK);
 
 
-            mAuthLogin.signInWithEmailAndPassword(email,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            mAuthLogin.signInWithEmailAndPassword(email,password).addOnCompleteListener(Login.this, new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()){
                         Toast.makeText(Login.this, "Login successful!", Toast.LENGTH_SHORT).show();
                         startActivity(loginSuccessfulIntent);
                     } else {
-                        Toast.makeText(Login.this, "Login failed! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        try {
+                            throw task.getException();
+                        } catch(FirebaseAuthInvalidUserException e) {
+                            loginEmail.setError("User invalid or no longer exists. Please register again.");
+                            loginEmail.requestFocus();
+                        } catch(FirebaseAuthInvalidCredentialsException e) {
+                            loginEmail.setError("Invalid credentials. Please try again.");
+                            loginEmail.requestFocus();
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage());
+                            Toast.makeText(Login.this, "Login failed! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        }
                     }
                 }
             });
