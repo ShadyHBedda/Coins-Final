@@ -92,7 +92,16 @@ public class Login extends AppCompatActivity {
         wrongEmail.setText("");
 
 
+        btnLogin.setOnClickListener(view -> {
+            onLoginClick();
+        });
 
+        CreateNewAccount.setOnClickListener(view ->{
+            startActivity(new Intent(Login.this, SignUp.class));
+        });
+    }
+
+    private void onLoginClick() {
         // Login user
         btnLogin = findViewById(R.id.loginButton);
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -138,19 +147,9 @@ public class Login extends AppCompatActivity {
                     loginPassword.requestFocus();
                 } else {
                     loginUser(email, password);
-                    
+
                 }
             }
-        });
-
-        /*
-        btnLogin.setOnClickListener(view -> {
-            onLoginClick();
-        });
-         */
-
-        CreateNewAccount.setOnClickListener(view ->{
-            startActivity(new Intent(Login.this, SignUp.class));
         });
     }
 
@@ -176,6 +175,7 @@ public class Login extends AppCompatActivity {
                             loginEmail.setError("Invalid credentials. Please try again.");
                             loginEmail.requestFocus();
                         } catch (Exception e) {
+
                             Log.e(TAG, e.getMessage());
                             Toast.makeText(Login.this, "Login failed! " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -203,9 +203,5 @@ public class Login extends AppCompatActivity {
         }
 
         startActivity(intent);
-    }
-
-    public void onLoginClick(){
-
     }
 }

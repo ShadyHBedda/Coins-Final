@@ -31,9 +31,28 @@ public class SignUp extends AppCompatActivity {
 
     private static final String TAG = "SignUp";
 
-    FirebaseAuth mAuth;
+    FirebaseAuth mAuthSignUp;
 
-    private void createUser(){
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sign_up);
+
+        mAuthSignUp = FirebaseAuth.getInstance();
+
+        /*
+        Intent intent = getIntent();
+
+        EditText email = findViewById(R.id.emailSignUp);
+        email.setText(intent.getStringExtra("email"));
+
+        EditText password = findViewById(R.id.passwordSignUp);
+        password.setText(String.valueOf(intent.getStringExtra("password")));
+        */
+    }
+
+    private void createUser() {
+        Log.d(TAG, "CREATE SUCCESSFUL");
 
         // Retrieve email and password inputs by user
         EditText SignUpEmail = findViewById(R.id.emailSignUp);
@@ -42,98 +61,88 @@ public class SignUp extends AppCompatActivity {
         EditText SignUpPassword = findViewById(R.id.passwordSignUp);
         String password = SignUpPassword.getText().toString();
 
-            // Firebase-provided method to create user with email and password
-            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(SignUp.this,
+        // Firebase-provided method to create user with email and password
+        mAuthSignUp.createUserWithEmailAndPassword(email, password).addOnCompleteListener(SignUp.this,
                 new OnCompleteListener<AuthResult>() {
-                @Override
-                public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful()){
-
-                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            FirebaseUser firebaseUser = mAuthSignUp.getCurrentUser();
 
                         /*
                         // Update user display name
                         UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder().setDisplayName(INSERTNAMEHERE).build();
                         firebaseUser.updateProfile(profileChangeRequest);
                         */
-                        
-                        // Enter user data into Firebase Database
-                        UserDetails writeUserDetails = new UserDetails(email);
 
-                        // Extracting user reference from registered user database
-                        DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
-                        referenceProfile.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    // Send verification email to user
-                                    firebaseUser.sendEmailVerification();
+                            // Enter user data into Firebase Database
+                            ReadWriteUserDetails writeUserDetails = new ReadWriteUserDetails(email);
 
-                                    Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_LONG).show();
+                            // Extracting user reference from registered user database
+                            DatabaseReference referenceProfile = FirebaseDatabase.getInstance().getReference("Registered Users");
+                            referenceProfile.child(firebaseUser.getUid()).setValue(writeUserDetails).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        // Send verification email to user
+                                        // firebaseUser.sendEmailVerification();
 
-                                    // Logs successful sign-up
-                                    Log.d(TAG, "createUserWithEmail:success");
+                                        Toast.makeText(SignUp.this, "User registered successfully.", Toast.LENGTH_LONG).show();
+                                        Log.d(TAG, "TASK SUCCESSFUL");
+                                        // Logs successful sign-up
+                                        Log.d(TAG, "createUserWithEmail:success");
 
-                                    Intent signUpSuccessfulIntent = new Intent(SignUp.this, Login.class);
-                                    signUpSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                            | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                        Intent signUpSuccessfulIntent = new Intent(SignUp.this, Login.class);
+                                        signUpSuccessfulIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                | Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                                    startActivity(signUpSuccessfulIntent);
-                                    finish();
-                                } else {
-                                    Toast.makeText(SignUp.this, "User registration failed. Please try again.", Toast.LENGTH_LONG).show();
+                                        //startActivity(signUpSuccessfulIntent);
+                                        finish();
+                                    } else {
+                                        Log.d(TAG, "createUserWithEmail:failure");
+                                        Toast.makeText(SignUp.this, "User registration failed. Please try again.", Toast.LENGTH_LONG).show();
+                                    }
+
                                 }
+                            });
 
+
+                        } else {
+                            Log.d(TAG, "TASK FAILED");
+                            try {
+                                throw task.getException();
+                            } catch (FirebaseAuthWeakPasswordException e) {
+                                SignUpPassword.setError("Your password is too weak. " +
+                                        "Consider using a mix of letters, numbers, " +
+                                        "and special characters, or making it longer.");
+                                SignUpPassword.requestFocus();
+                                Log.w(TAG, "createUserWithEmail:failure" + e.getMessage(), task.getException());
+                            } catch (FirebaseAuthInvalidCredentialsException e) {
+                                SignUpEmail.setError("The email address you entered is either " +
+                                        "invalid or already in use. Please enter a valid " +
+                                        "email address.");
+                                SignUpEmail.requestFocus();
+                                Log.w(TAG, "createUserWithEmail:failure" + e.getMessage(), task.getException());
+                            } catch (FirebaseAuthUserCollisionException e) {
+                                SignUpEmail.setError("This email  is already in use. " +
+                                        "Please login or enter another email.");
+                                SignUpEmail.requestFocus();
+                                Log.w(TAG, "createUserWithEmail:failure" + e.getMessage(), task.getException());
+                            } catch (Exception e) {
+                                Log.w(TAG, "createUserWithEmail:failure" + e.getMessage(), task.getException());
+                                Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                        });
+
+                            ;
 
 
-
-                    } else {
-                        try {
-                            throw task.getException();
-                        } catch (FirebaseAuthWeakPasswordException e) {
-                            SignUpPassword.setError("Your password is too weak. " +
-                                    "Consider using a mix of letters, numbers, " +
-                                    "and special characters, or making it longer.");
-                            SignUpPassword.requestFocus();
-                        } catch (FirebaseAuthInvalidCredentialsException e) {
-                            SignUpEmail.setError("The email address you entered is either " +
-                                    "invalid or already in use. Please enter a valid " +
-                                    "email address.");
-                            SignUpEmail.requestFocus();
-                        } catch (FirebaseAuthUserCollisionException e) {
-                            SignUpEmail.setError("This email  is already in use. " +
-                                    "Please login or enter another email.");
-                        } catch (Exception e) {
-                            Log.e(TAG, e.getMessage());
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());     Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(SignUp.this, "Registration Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
-
-                        ;
-
-
                     }
-                }
-            });
+                });
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
 
-        Intent intent = getIntent();
-
-        EditText email = findViewById(R.id.emailSignUp);
-        email.setText(intent.getStringExtra("email"));
-
-        EditText password = findViewById(R.id.passwordSignUp);
-        password.setText(String.valueOf(intent.getStringExtra("password")));
-    }
-
-    public void onSignUpClick(View view){
+    public void onSignUpClick(View view) {
         EditText enterPassword = findViewById(R.id.passwordSignUp);
         String password = enterPassword.getText().toString();
 
@@ -160,7 +169,7 @@ public class SignUp extends AppCompatActivity {
 
         Boolean valid = true;
 
-        if (!matcher.matches()){
+        if (!matcher.matches()) {
             valid = false;
             wrongEmail.setText(R.string.InvalidEmail);
         }
@@ -175,15 +184,13 @@ public class SignUp extends AppCompatActivity {
             wrongPassword.setText(R.string.EmptyPassword);
         }
 
-        if (!verify.equals(password)){
+        if (!verify.equals(password)) {
             valid = false;
             wrongVerify.setText(R.string.DoesNotMatchPassword);
         }
 
         if (valid) {
             createUser();
-            Intent intent = new Intent(this, Login.class);
-            startActivity(intent);
         }
     }
 

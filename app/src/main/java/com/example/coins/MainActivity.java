@@ -18,21 +18,21 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
+    private FirebaseAuth mAuthMain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
+        mAuthMain = FirebaseAuth.getInstance();
     }
 
     @Override
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        FirebaseUser currentUser = mAuthMain.getCurrentUser();
         if(currentUser == null){
             startActivity(new Intent(this, Login.class));
         } else {

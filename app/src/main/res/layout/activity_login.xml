@@ -222,6 +222,7 @@
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
                 android:textSize="18sp"
                 android:textStyle="bold"
+                android:onClick="onLoginClick"
                 app:layout_constraintBottom_toTopOf="@+id/newAcct"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
