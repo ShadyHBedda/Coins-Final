@@ -6,11 +6,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,6 +55,25 @@ public class Login extends AppCompatActivity {
 
         mAuthLogin = FirebaseAuth.getInstance();
 
+        // Toggle password visibility using eye icon
+        ImageView togglePasswordVisibility = findViewById(R.id.togglePasswordVisibility);
+        togglePasswordVisibility.setImageResource(R.drawable.password_invisible);
+        togglePasswordVisibility.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (loginPassword.getTransformationMethod().equals(HideReturnsTransformationMethod.getInstance())) {
+                    //If password is visible, hide it
+                    loginPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    // Change icon to reflect that
+                    togglePasswordVisibility.setImageResource(R.drawable.password_invisible);
+                } else {
+                    // If password is hidden, show it
+                    loginPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    // Change icon to reflect that
+                    togglePasswordVisibility.setImageResource(R.drawable.password_visible);
+                }
+            }
+        });
 
 
         Intent intent = new Intent(this, Cryptocurrency.class);
