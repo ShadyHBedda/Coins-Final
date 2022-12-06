@@ -22,6 +22,9 @@ import java.util.regex.Pattern;
 public class ChangeEmail extends AppCompatActivity {
 
     final String TAG = "ChangeEmail";
+    private FirebaseAuth mAuthChangeEmail;
+    private FirebaseUser firebaseUser;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

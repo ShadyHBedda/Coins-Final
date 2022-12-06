@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 public class ChangePassword extends AppCompatActivity {
 
     final String TAG = "ChangePassword";
+    private FirebaseAuth mAuthChangePassword;
+    private FirebaseUser firebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
